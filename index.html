@@ -4,18 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Монеты</title>
-  <!-- Подключаем шрифт Roboto -->
+  <!-- Подключение шрифта Roboto -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #FFD700; /* золотой */
-      --secondary-color: #FFA500; /* темно-золотой */
+      --primary-color: #FFD700;
+      --secondary-color: #FFA500;
       --bg-color: #f5f5f5;
       --text-color: #333;
     }
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Roboto', sans-serif;
@@ -25,7 +23,6 @@
       flex-direction: column;
       min-height: 100vh;
     }
-    /* Контейнер для основного контента */
     .content {
       flex: 1;
       padding: 20px;
@@ -39,10 +36,8 @@
       text-align: center;
       position: relative;
     }
-    /* Секция игры */
-    .balance-container {
-      margin-bottom: 40px;
-    }
+    /* Секция ИГРА */
+    .balance-container { margin-bottom: 40px; }
     .balance {
       font-size: 48px;
       font-weight: 700;
@@ -50,16 +45,12 @@
       justify-content: center;
       align-items: center;
     }
-    /* Иконка монетки рядом с числом */
     .balance svg {
       width: 50px;
       height: 50px;
       margin-left: 10px;
     }
-    /* Секция с монетой для нажатия */
-    .coin-container {
-      position: relative;
-    }
+    .coin-container { position: relative; }
     .coin {
       width: 100px;
       height: 100px;
@@ -67,19 +58,13 @@
       cursor: pointer;
       transition: transform 0.2s;
     }
-    .coin:hover {
-      transform: scale(1.05);
-    }
-    /* Анимация нажатия (bounce) */
-    .coin.clicked {
-      animation: bounce 0.4s ease;
-    }
+    .coin:hover { transform: scale(1.05); }
+    .coin.clicked { animation: bounce 0.4s ease; }
     @keyframes bounce {
       0% { transform: scale(1); }
       50% { transform: scale(1.2); }
       100% { transform: scale(1); }
     }
-    /* Эффект «летящей» монетки */
     .coin-fly {
       position: absolute;
       left: 50%;
@@ -101,7 +86,6 @@
         transform: translate(-50%, -80px) scale(1.5);
       }
     }
-    /* Нижняя навигационная панель */
     .bottom-nav {
       display: flex;
       border-top: 1px solid #ccc;
@@ -119,6 +103,33 @@
       background: #eee;
       font-weight: bold;
     }
+    /* Стили для списка заданий */
+    ul.task-list {
+      list-style: none;
+      padding: 0;
+    }
+    ul.task-list li {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    ul.task-list li.completed {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+    ul.task-list li button {
+      padding: 5px 10px;
+      border: none;
+      background: var(--secondary-color);
+      color: #fff;
+      cursor: pointer;
+    }
+    ul.task-list li button:disabled {
+      background: #aaa;
+      cursor: default;
+    }
   </style>
 </head>
 <body>
@@ -128,7 +139,6 @@
       <div class="balance-container">
         <div class="balance">
           <span id="coinAmount">0</span>
-          <!-- Иконка монетки (маленькая) -->
           <svg viewBox="0 0 100 100">
             <defs>
               <radialGradient id="coinGradient" cx="50%" cy="50%" r="50%">
@@ -141,7 +151,6 @@
         </div>
       </div>
       <div class="coin-container">
-        <!-- Большая монета для нажатия -->
         <div class="coin" id="coin" onclick="earnCoin()">
           <svg viewBox="0 0 100 100">
             <defs>
@@ -151,8 +160,7 @@
               </radialGradient>
             </defs>
             <circle cx="50" cy="50" r="45" fill="url(#coinGradient2)" stroke="#DAA520" stroke-width="5"/>
-            <!-- Символ плюса, означающий начисление -->
-            <text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="40" font-family="Roboto" dy=".3em"></text>
+            <text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="40" font-family="Roboto" dy=".3em">+</text>
           </svg>
         </div>
       </div>
@@ -160,86 +168,123 @@
     <!-- Вкладка ЗАДАНИЯ -->
     <div id="tasksSection" class="section" style="display: none;">
       <h1>Задания</h1>
-      <p>Здесь будут задания</p>
-      <ul style="text-align: left;">
-        <p>Задание 1: Нажмите на монету, чтобы получить монетки.</p>
+      <ul class="task-list">
+        <li id="taskSubscribe">
+          Подписаться на Telegram канал игры
+          <button id="claimBtn" onclick="claimSubscriptionTask()">CLAIM</button>
+        </li>
       </ul>
     </div>
   </div>
-
-  <!-- Нижняя навигационная панель -->
   <nav class="bottom-nav">
     <button id="navGame" class="active" onclick="showSection('game')">ИГРА</button>
     <button id="navTasks" onclick="showSection('tasks')">ЗАДАНИЯ</button>
   </nav>
-
   <script>
-    // Инициализация Telegram Web App
     if (window.Telegram && Telegram.WebApp) {
       Telegram.WebApp.ready();
     }
-    
-    let coinCount = 0;
+
     const coinAmountEl = document.getElementById('coinAmount');
     const coinEl = document.getElementById('coin');
 
-    // Функция начисления монет с анимацией
     function earnCoin() {
-      // Увеличиваем количество монет
-      coinCount++;
-      coinAmountEl.textContent = coinCount;
-      
-      // Добавляем bounce-анимацию к монете
       coinEl.classList.add('clicked');
-      setTimeout(() => {
-        coinEl.classList.remove('clicked');
-      }, 400);
-      
-      // Создаем элемент для анимации «летящей» монетки
+      setTimeout(() => { coinEl.classList.remove('clicked'); }, 400);
+
       const flyCoin = document.createElement('div');
       flyCoin.classList.add('coin-fly');
       flyCoin.textContent = '+1';
-      
-      // Добавляем элемент в контейнер с монетой
       coinEl.parentElement.appendChild(flyCoin);
-      
-      // После завершения анимации удаляем элемент
-      flyCoin.addEventListener('animationend', () => {
-        flyCoin.remove();
-      });
+      flyCoin.addEventListener('animationend', () => { flyCoin.remove(); });
+
+      let telegramUserId = 'default';
+      if (window.Telegram && Telegram.WebApp?.initDataUnsafe?.user) {
+        telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
+      }
+      fetch(`/api/user/${telegramUserId}/addCoin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ increment: 1 })
+      })
+      .then(response => response.json())
+      .then(data => { coinAmountEl.textContent = data.coin_balance; })
+      .catch(err => console.error(err));
     }
 
-    // Переключение между вкладками
     function showSection(section) {
       const gameSection = document.getElementById('gameSection');
       const tasksSection = document.getElementById('tasksSection');
       const navGame = document.getElementById('navGame');
       const navTasks = document.getElementById('navTasks');
-
       if (section === 'game') {
         gameSection.style.display = 'block';
         tasksSection.style.display = 'none';
         navGame.classList.add('active');
         navTasks.classList.remove('active');
-      } else if (section === 'tasks') {
+      } else {
         gameSection.style.display = 'none';
         tasksSection.style.display = 'block';
         navTasks.classList.add('active');
         navGame.classList.remove('active');
+        checkTasksStatus();
       }
     }
 
-    
+    // Функция для проверки статуса задания подписки
+    function checkTasksStatus() {
+      let telegramUserId = 'default';
+      if (window.Telegram && Telegram.WebApp?.initDataUnsafe?.user) {
+        telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
+      }
+      fetch(`/api/user/${telegramUserId}/tasks`)
+        .then(response => response.json())
+        .then(data => {
+          const subTask = data.find(task => task.task === 'subscribe' && task.completed);
+          if (subTask) {
+            document.getElementById('claimBtn').disabled = true;
+            document.getElementById('taskSubscribe').classList.add('completed');
+            document.getElementById('claimBtn').textContent = 'COMPLETED';
+          }
+        })
+        .catch(err => console.error(err));
+    }
+
+    // Функция для отправки запроса на выполнение задания подписки
+    function claimSubscriptionTask() {
+      let telegramUserId = 'default';
+      if (window.Telegram && Telegram.WebApp?.initDataUnsafe?.user) {
+        telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
+      }
+      fetch(`/api/user/${telegramUserId}/claimTask/subscribe`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          alert(data.message);
+          document.getElementById('claimBtn').disabled = true;
+          document.getElementById('taskSubscribe').classList.add('completed');
+          document.getElementById('claimBtn').textContent = 'COMPLETED';
+          fetch(`/api/user/${telegramUserId}`)
+            .then(response => response.json())
+            .then(data => { coinAmountEl.textContent = data.coin_balance; })
+            .catch(err => console.error(err));
+        }
+      })
+      .catch(err => console.error(err));
+    }
+
     window.addEventListener('load', () => {
       let telegramUserId = 'default';
-      if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
+      if (window.Telegram && Telegram.WebApp?.initDataUnsafe?.user) {
         telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
       }
       fetch(`/api/user/${telegramUserId}`)
         .then(response => response.json())
-        .then(data => {
-          coinAmountEl.textContent = data.coin_balance;
-        })
+        .then(data => { coinAmountEl.textContent = data.coin_balance; })
         .catch(err => console.error(err));
     });
   </script>
